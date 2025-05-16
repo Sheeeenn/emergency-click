@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function Home() {
+export default function Login() {
   return (
     <View style={styles.container}>
-      <Text>Welcome to the Home Page</Text>
+      <Text>Welcome to the Login Page</Text>
     </View>
   );
 }
