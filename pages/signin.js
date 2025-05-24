@@ -25,6 +25,7 @@ export default function Signin() {
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
   const [age, setAge] = useState('');
+  const navigation = useNavigation();
 
   // Validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -143,8 +144,8 @@ export default function Signin() {
                 age,
                 contactPerson: '',
             });
-
             Alert.alert('Signup successful!');
+            navigation.navigate('Login');
         }catch (error) {
             console.error('Error signing in:', error);
             Alert.alert('Error signing in:', error.message);
@@ -152,6 +153,7 @@ export default function Signin() {
         
         console.log('Sign in with:', { email, password, username });
     }
+    
 
 
   return (
@@ -176,9 +178,16 @@ export default function Signin() {
       >
         {/* Icon with pulse */}
         <View style={styles.pulseWrapper}>
+             <TouchableOpacity
+          style={styles.submitButton}
+          onPress={handleSignIn}
+          activeOpacity={0.5}
+        >
+          <Text style={styles.submitButtonText}>Submit</Text>
+        </TouchableOpacity>
           <Animated.View
             style={[
-              styles.pulseCircle,
+              styles.pulseCrircle,
               {
                 opacity: pulseOpacity,
                 transform: [{ scale: pulseScale }],
