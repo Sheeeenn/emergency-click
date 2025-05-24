@@ -12,11 +12,15 @@ import {
 } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
+import Feather from 'react-native-vector-icons/Feather';
+
 
 export default function Login() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const navigation = useNavigation();
+  const [showPassword, setShowPassword] = React.useState(false);
+
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/;
@@ -108,17 +112,29 @@ export default function Login() {
           selectionColor="#FF3B30"
         />
 
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoCapitalize="none"
-          autoCorrect={false}
-          placeholderTextColor="#BBB"
-          selectionColor="#FF3B30"
-        />
+        <View style={styles.passwordContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholderTextColor="#BBB"
+            selectionColor="#FF3B30"
+          />
+          <TouchableOpacity
+            style={styles.eyeIcon}
+            onPress={() => setShowPassword(prev => !prev)}
+          >
+            <Feather
+              name={showPassword ? 'eye' : 'eye-off'}
+              size={22}
+              color="#FF3B30"
+            />
+          </TouchableOpacity>
+        </View>
 
         <TouchableOpacity style={styles.forgotWrapper}>
           <Text style={styles.forgotText}>Forgot Password?</Text>
@@ -247,4 +263,16 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
+  passwordContainer: {
+  width: '100%',
+  position: 'relative',
+  marginBottom: 20,
+},
+eyeIcon: {
+  position: 'absolute',
+  right: 20,
+  top: 18,
+},
+
 });
+
