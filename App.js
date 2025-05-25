@@ -20,7 +20,7 @@ export default function App() {
           <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
           <Stack.Screen name="Signin" component={Signin} options={{ headerShown: false }} />
           <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
-<Stack.Screen name="AddRemove" component={AddRemove} options={{ headerShown: false }} />
+          <Stack.Screen name="AddRemove" component={AddRemove} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>
