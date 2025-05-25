@@ -2,6 +2,7 @@ import { initializeApp, getApps } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB7-VUzX6d5dpN4BJ_D8msOYRXH8wqXy48",
@@ -13,9 +14,11 @@ const firebaseConfig = {
   databaseURL: "https://emergency-click-92008-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
-// 👇 only initialize if not already initialized
+const databaseURL = 'https://emergency-click-92008-default-rtdb.asia-southeast1.firebasedatabase.app';
+const database = getDatabase(app, databaseURL);
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 
 export const db = getDatabase(app);
 export const firestore = getFirestore(app);
 export const auth = getAuth(app);
+export { database };

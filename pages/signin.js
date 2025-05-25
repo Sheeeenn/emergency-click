@@ -150,9 +150,9 @@ if (password !== confirmPassword) {
 
             await setDoc(doc(firestore, 'users', email), {
                 username,
-                email,
                 age,
-                contactPerson: '',
+                userEmail: email,
+                emails: '',
             });
             Alert.alert('Signup successful!');
             navigation.navigate('Login');
