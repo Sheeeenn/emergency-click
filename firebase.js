@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getReactNativePersistence, initializeAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
+import { getDatabase } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB7-VUzX6d5dpN4BJ_D8msOYRXH8wqXy48",
@@ -14,6 +15,9 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const databaseURL = 'https://emergency-click-92008-default-rtdb.asia-southeast1.firebasedatabase.app';
+const database = getDatabase(app, databaseURL);
 
 export const firestore = getFirestore(app);
 export const auth = getAuth(app);
+export { database };

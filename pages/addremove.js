@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -14,24 +14,65 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import BottomNav from '../components/BottomNav';
 
+import { database, auth,  firestore } from '../firebase';
+import { ref, update as updateRealtime } from 'firebase/database';
+import { doc, updateDoc, getDoc, deleteField } from 'firebase/firestore';
+
 const windowWidth = Dimensions.get('window').width;
 
 export default function AddRemove() {
   const [email, setEmail] = useState('');
   const [search, setSearch] = useState('');
   const [emails, setEmails] = useState([]);
+  
+  const addEmail = async () => {
+    const user = auth.currentUser;
 
-  const addEmail = () => {
-    if (!email.trim()) {
+    if (!user) {
+      Alert.alert('Not logged in', 'Please log in to add emails.');
+      return;
+    }
+
+    const rawInput = email.trim();
+
+    if (!rawInput) {
       Alert.alert('Invalid Input', 'Please enter a valid email address.');
       return;
     }
-    if (emails.includes(email.trim())) {
+
+    if (emails.includes(rawInput)) {
       Alert.alert('Duplicate', 'Email already added.');
       return;
     }
-    setEmails(prev => [...prev, email.trim()]);
-    setEmail('');
+
+    const emailParts = rawInput.split('@');
+    if (emailParts.length < 2) {
+      Alert.alert('Invalid Input', 'Please enter a valid email address.');
+      return;
+    }
+
+    const emailKey = emailParts[0];
+    const userEmail = user.email;
+
+    const realtimeRef = ref(database, '202004/emails');
+    const firestoreRef = doc(firestore, 'users', userEmail);
+
+    try {
+      await updateRealtime(realtimeRef, {
+        [emailKey]: rawInput,
+      });
+
+      await updateDoc(firestoreRef, {
+        [`emails.${emailKey}`]: rawInput,
+      });
+
+      setEmails(prev => [...prev, rawInput]);
+      setEmail('');
+      console.log(`${rawInput} has been added to Realtime DB and Firestore`);
+    } catch (error) {
+      console.error('Error updating Firebase:', error);
+      Alert.alert('Error', 'Failed to save email in Firebase.');
+    }
   };
 
   const removeEmail = (item) => {
@@ -43,8 +84,32 @@ export default function AddRemove() {
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => {
-            setEmails(prev => prev.filter(e => e !== item));
+          onPress: async () => {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const emailKey = item.split('@')[0];
+            const userEmail = user.email;
+
+            const realtimeRef = ref(database, '202004/emails');
+            const firestoreRef = doc(firestore, 'users', userEmail);
+
+            try {
+              // Remove from Realtime Database
+              await updateRealtime(realtimeRef, {
+                [emailKey]: null,
+              });
+
+              // Remove from Firestore
+              await updateDoc(firestoreRef, {
+                [`emails.${emailKey}`]: deleteField(),
+              });
+              console.log(`${item} has been deleted.`);
+              setEmails(prev => prev.filter(e => e !== item));
+            } catch (error) {
+              console.error('Error removing email from Firebase:', error);
+              Alert.alert('Error', 'Failed to remove email from Firebase.');
+            }
           },
         },
       ],
@@ -55,6 +120,31 @@ export default function AddRemove() {
   const filteredEmails = emails.filter(email =>
     email.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    const fetchEmails = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userEmail = user.email;
+      const firestoreRef = doc(firestore, 'users', userEmail);
+
+      try {
+        const docSnap = await getDoc(firestoreRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          const emailObj = data.emails || {};
+          const emailList = Object.values(emailObj); // e.g. ["email1", "email2"]
+          setEmails(emailList); // Set emails from Firestore
+        }
+      } catch (error) {
+        console.error('Error fetching emails from Firestore:', error);
+      }
+    };
+
+    fetchEmails();
+  }, []);
+
 
   return (
     <SafeAreaView style={styles.safeArea}>
