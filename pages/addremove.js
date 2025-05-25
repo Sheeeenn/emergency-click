@@ -14,7 +14,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import BottomNav from '../components/BottomNav';
 
-import { database, auth,  firestore } from '../firebase';
+import { db, auth,  firestore } from '../firebase';
 import { ref, update as updateRealtime } from 'firebase/database';
 import { doc, updateDoc, getDoc, deleteField } from 'firebase/firestore';
 
@@ -54,7 +54,7 @@ export default function AddRemove() {
     const emailKey = emailParts[0];
     const userEmail = user.email;
 
-    const realtimeRef = ref(database, '202004/emails');
+    const realtimeRef = ref(db, '202004/emails');
     const firestoreRef = doc(firestore, 'users', userEmail);
 
     try {
@@ -91,7 +91,7 @@ export default function AddRemove() {
             const emailKey = item.split('@')[0];
             const userEmail = user.email;
 
-            const realtimeRef = ref(database, '202004/emails');
+            const realtimeRef = ref(db, '202004/emails');
             const firestoreRef = doc(firestore, 'users', userEmail);
 
             try {
