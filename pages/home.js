@@ -13,6 +13,9 @@ import {
 import * as Location from 'expo-location';
 import BottomNav from '../components/BottomNav';
 
+import MapScreen from '../components/map';
+import MapView from 'react-native-maps';
+
 const { width } = Dimensions.get('window');
 const CIRCLE_SIZE = 140;
 
@@ -113,11 +116,9 @@ export default function Home() {
           <Text style={styles.appName}>ClickChain</Text>
         </View>
 
-        <View style={styles.sectionContainer}>
+        <View style={[styles.sectionContainer, styles.mapHeight]}>
           <Text style={styles.sectionTitle}>LOCATION</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>{locationText}</Text>
-          </View>
+          <MapScreen />
         </View>
 
         <View style={styles.sectionContainer}>
@@ -209,6 +210,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: '#FF3B30',
     paddingBottom: 8,
+  },
+  mapHeight:{
+    height: 300,
   },
   icon: {
     width: 60,
