@@ -17,6 +17,8 @@ import { useNavigation } from '@react-navigation/native';
 import { auth, firestore } from '../firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import Icon from 'react-native-vector-icons/Feather';
+
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -26,6 +28,10 @@ export default function Signin() {
   const [email, setEmail] = useState('');
   const [age, setAge] = useState('');
   const navigation = useNavigation();
+  const [confirmPassword, setConfirmPassword] = useState('');
+const [passwordVisible, setPasswordVisible] = useState(false);
+const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
 
   // Validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -133,6 +139,10 @@ export default function Signin() {
             console.log('Please enter a valid age');
             return;
         }
+if (password !== confirmPassword) {
+  Alert.alert('Passwords do not match');
+  return;
+}
 
         try{
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -176,33 +186,37 @@ export default function Signin() {
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={{ width: '120%', alignItems: 'flex-start', marginBottom: 0 }}>
+  <TouchableOpacity
+    style={styles.backButton}
+    onPress={() => navigation.navigate('Login')}
+  >
+    <Icon name="log-out" size={18} color="#FF3B30" style={{ marginRight: 6 }} />
+    <Text style={styles.backButtonText}>Back</Text>
+  </TouchableOpacity>
+</View>
+
         {/* Icon with pulse */}
         <View style={styles.pulseWrapper}>
-             <TouchableOpacity
-                style={styles.submitButton}
-                onPress={handleSignIn}
-                activeOpacity={0.5}
-                >
-                    <Text style={styles.submitButtonText}>Submit</Text>
-            </TouchableOpacity>
-          <Animated.View
-            style={[
-              styles.pulseCrircle,
-              {
-                opacity: pulseOpacity,
-                transform: [{ scale: pulseScale }],
-              },
-            ]}
-          />
-          <Animated.Image
-            source={require('./assets/iconcc.png')}
-            style={[styles.logo, { transform: [{ scale: pulseScale }] }]}
-            resizeMode="contain"
-          />
-        </View>
+  <Animated.View
+    style={[
+      styles.pulseCrircle,
+      {
+        opacity: pulseOpacity,
+        transform: [{ scale: pulseScale }],
+      },
+    ]}
+  />
+  <Animated.Image
+    source={require('./assets/iconcc.png')}
+    style={[styles.logo, { transform: [{ scale: pulseScale }] }]}
+    resizeMode="contain"
+  />
+</View>
 
         {/* Title */}
         <Text style={styles.title}>SIGN IN</Text>
+
 
         {/* Inputs */}
         <TextInput
@@ -215,22 +229,9 @@ export default function Signin() {
           autoCorrect={false}
           returnKeyType="next"
         />
-
-        <TextInput
+<TextInput
           style={styles.input}
-          placeholder="Enter your Password"
-          placeholderTextColor="#999"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry={true}
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="next"
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your Name/Email"
+          placeholder="Enter your Email Address"
           placeholderTextColor="#999"
           value={email}
           onChangeText={setEmail}
@@ -239,8 +240,51 @@ export default function Signin() {
           autoCorrect={false}
           returnKeyType="next"
         />
+        
+        <View style={{ width: '100%', marginBottom: -1 }}>
+  <TextInput
+    style={styles.input}
+    placeholder="Enter your Password"
+    placeholderTextColor="#999"
+    value={password}
+    onChangeText={setPassword}
+    secureTextEntry={!passwordVisible}
+    autoCapitalize="none"
+    autoCorrect={false}
+    returnKeyType="next"
+  />
+  <TouchableOpacity
+    onPress={() => setPasswordVisible(!passwordVisible)}
+    style={{ position: 'absolute', right: 20, top: 18 }}
+  >
+    <Icon name={passwordVisible ? 'eye' : 'eye-off'} size={22} color="#999" />
+  </TouchableOpacity>
+</View>
 
-        <TextInput
+<View style={{ width: '100%', marginBottom: -1 }}>
+  <TextInput
+    style={styles.input}
+    placeholder="Confirm Password"
+    placeholderTextColor="#999"
+    value={confirmPassword}
+    onChangeText={setConfirmPassword}
+    secureTextEntry={!confirmPasswordVisible}
+    autoCapitalize="none"
+    autoCorrect={false}
+    returnKeyType="done"
+  />
+  <TouchableOpacity
+    onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+    style={{ position: 'absolute', right: 20, top: 18 }}
+  >
+    <Icon
+      name={confirmPasswordVisible ? 'eye' : 'eye-off'}
+      size={22}
+      color="#999"
+    />
+  </TouchableOpacity>
+  </View>
+         <TextInput
           style={styles.input}
           placeholder="Enter your Age"
           placeholderTextColor="#999"
@@ -257,6 +301,8 @@ export default function Signin() {
         >
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
+        
+        
       </ScrollView>
     </SafeAreaView>
   );
@@ -265,11 +311,33 @@ export default function Signin() {
 const CIRCLE_SIZE = 140;
 const MAX_WIDTH = 420;
 
+
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#111B2E',
+    flexDirection: 'row',
+    justifyContent: 'flex-start'
+
   },
+    backButton: {
+  flexDirection: 'row', // NEW
+  alignItems: 'center', // NEW
+  alignSelf: 'flex-start',
+  marginBottom: -10,
+  paddingVertical: 4,
+  paddingHorizontal: 6,
+  backgroundColor: '#1B263B',
+  borderRadius: 6,
+  borderColor: '#FF3B30',
+  borderWidth: 1,
+},
+
+backButtonText: {
+  color: '#FF3B30',
+  fontSize: 14,
+  fontWeight: 'bold',
+},
   container: {
     flexGrow: 1,
     paddingHorizontal: 30,
@@ -279,6 +347,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: MAX_WIDTH,
   },
+  
   movingCircle: {
     position: 'absolute',
     width: CIRCLE_SIZE,
@@ -327,7 +396,7 @@ const styles = StyleSheet.create({
     marginBottom: 35,
     textAlign: 'center',
     textShadowColor: 'rgba(255,59,48,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
+    textShadowOffset: { width: 0, hright: 2 },
     textShadowRadius: 6,
   },
   input: {
@@ -368,4 +437,5 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
+  
 });
