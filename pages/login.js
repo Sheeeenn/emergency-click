@@ -14,6 +14,9 @@ import { TextInput } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 import Feather from 'react-native-vector-icons/Feather';
 
+import { auth, firestore } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+
 
 export default function Login() {
   const [email, setEmail] = React.useState('');
@@ -54,16 +57,22 @@ export default function Login() {
     outputRange: [0.6, 0],
   });
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!emailRegex.test(email)) {
-      Alert.alert('Invalid email format');
+      Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
-    if (!passwordRegex.test(password)) {
-      Alert.alert('Password must be at least 8 characters with a number and letter');
-      return;
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      console.log('User signed in:', user.email);
+
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('Login failed:', error.message);
+      Alert.alert('Login Error', error.message);
     }
-    console.log('Logging in with:', { email, password });
   };
 
   return (

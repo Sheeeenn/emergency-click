@@ -179,12 +179,12 @@ export default function Signin() {
         {/* Icon with pulse */}
         <View style={styles.pulseWrapper}>
              <TouchableOpacity
-          style={styles.submitButton}
-          onPress={handleSignIn}
-          activeOpacity={0.5}
-        >
-          <Text style={styles.submitButtonText}>Submit</Text>
-        </TouchableOpacity>
+                style={styles.submitButton}
+                onPress={handleSignIn}
+                activeOpacity={0.5}
+                >
+                    <Text style={styles.submitButtonText}>Submit</Text>
+            </TouchableOpacity>
           <Animated.View
             style={[
               styles.pulseCrircle,
