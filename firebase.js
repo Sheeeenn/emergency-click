@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { initializeApp } from "firebase/app";
 import { getReactNativePersistence, initializeAuth } from "firebase/auth";
+import { getDatabase} from 'firebase/database';
 import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
@@ -15,5 +16,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
+
+export const db = getDatabase(app, 'https://emergency-click-92008-default-rtdb.asia-southeast1.firebasedatabase.app');   
 export const firestore = getFirestore(app);
 export const auth = getAuth(app);

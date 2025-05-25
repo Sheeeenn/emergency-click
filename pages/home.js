@@ -14,7 +14,10 @@ import * as Location from 'expo-location';
 import BottomNav from '../components/BottomNav';
 
 import MapScreen from '../components/map';
-import MapView from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
+
+import { db } from '../firebase'; // adjust path as needed
+import { ref, onValue } from 'firebase/database';
 
 const { width } = Dimensions.get('window');
 const CIRCLE_SIZE = 140;
@@ -22,6 +25,7 @@ const CIRCLE_SIZE = 140;
 export default function Home() {
   const [locationText, setLocationText] = useState('Waiting for emergency click...');
   const [dateTime, setDateTime] = useState(null);
+  const [location, setLocation] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const pulseAnim = useRef(new Animated.Value(0)).current;
@@ -46,112 +50,123 @@ export default function Home() {
     ).start();
   }, [pulseAnim]);
 
-  const fetchLocation = useCallback(async () => {
-    setLoading(true);
-    let { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      setLocationText('Permission denied');
-      setDateTime(null);
-      setLoading(false);
-      return;
-    }
+  // 🔁 Realtime listener
+  useEffect(() => {
+        const locationRef = ref(db, '202004');
 
-    try {
-      let location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-      const timestamp = new Date();
+        const unsubscribe = onValue(locationRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.latitude && data.longitude) {
+            const latitude = parseFloat(data.latitude);
+            const longitude = parseFloat(data.longitude);
+            setLocation({ latitude, longitude });
+            setLocationText(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
+            setDateTime(new Date().toLocaleString());
 
-      setLocationText(`Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}`);
-      setDateTime(timestamp.toLocaleString());
-    } catch (error) {
-      setLocationText('Error fetching location');
-      setDateTime(null);
-    }
-    setLoading(false);
-  }, []);
+            console.log(latitude, longitude);
+        }
+        });
 
-  const onPressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
-  };
+        return () => unsubscribe();
+    }, []);
 
-  const onPressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      friction: 3,
-      tension: 40,
-      useNativeDriver: true,
-    }).start();
-  };
+    const onPressIn = () => {
+        Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+        }).start();
+    };
 
-  const pulseScale = pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [1, 2.5],
-  });
-  const pulseOpacity = pulseAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.5, 0],
-  });
+    const onPressOut = () => {
+        Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 3,
+        tension: 40,
+        useNativeDriver: true,
+        }).start();
+    };
 
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.pulseWrapper} pointerEvents="none">
-        <Animated.View
-          style={[
-            styles.pulseCircle,
-            {
-              transform: [{ scale: pulseScale }],
-              opacity: pulseOpacity,
-            },
-          ]}
-        />
-        <View style={styles.innerCircle} />
-      </View>
+    const pulseScale = pulseAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [1, 2.5],
+    });
 
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <Image source={require('./assets/iconcc.png')} style={styles.icon} />
-          <Text style={styles.appName}>ClickChain</Text>
-        </View>
+    const pulseOpacity = pulseAnim.interpolate({
+        inputRange: [0, 1],
+        outputRange: [0.5, 0],
+    });
 
-        <View style={[styles.sectionContainer, styles.mapHeight]}>
-          <Text style={styles.sectionTitle}>LOCATION</Text>
-          <MapScreen />
-        </View>
-
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>UPDATED</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>{dateTime || '--/--/---- --:-- --'}</Text>
-          </View>
-        </View>
-
-        <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              loading && styles.buttonDisabled,
-              pressed && !loading ? { opacity: 0.7 } : null,
+    return (
+        <SafeAreaView style={styles.container}>
+        <View style={styles.pulseWrapper} pointerEvents="none">
+            <Animated.View
+            style={[
+                styles.pulseCircle,
+                {
+                transform: [{ scale: pulseScale }],
+                opacity: pulseOpacity,
+                },
             ]}
-            onPress={fetchLocation}
-            disabled={loading}
-            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
-            onPressIn={onPressIn}
-            onPressOut={onPressOut}
-            android_ripple={{ color: '#FF3B30' }}
-          >
-            <Text style={styles.buttonText}>{loading ? 'Fetching...' : 'Update Location'}</Text>
-          </Pressable>
-        </Animated.View>
-      </View>
+            />
+            <View style={styles.innerCircle} />
+        </View>
 
-      {/* Remove navigation prop here */}
-      <BottomNav />
-    </SafeAreaView>
-  );
-}
+        <View style={styles.content}>
+            <View style={styles.header}>
+            <Image source={require('./assets/iconcc.png')} style={styles.icon} />
+            <Text style={styles.appName}>ClickChain</Text>
+            </View>
+
+            <View style={[styles.sectionContainer, styles.mapHeight]}>
+            <Text style={styles.sectionTitle}>LOCATION</Text>
+            {location ? (
+                <MapView
+                style={{ flex: 1, borderRadius: 10 }}
+                region={{
+                    latitude: location.latitude,
+                    longitude: location.longitude,
+                    latitudeDelta: 0.01,
+                    longitudeDelta: 0.01,
+                }}
+                >
+                <Marker
+                    coordinate={location}
+                    title="Emergency Location"
+                    description="Updated live from Firebase"
+                />
+                </MapView>
+            ) : (
+                <Text style={{ textAlign: 'center' }}>Waiting for location...</Text>
+            )}
+            </View>
+
+            <View style={styles.sectionContainer}>
+            <Text style={styles.sectionTitle}>UPDATED</Text>
+            <View style={styles.infoBox}>
+                <Text style={styles.infoText}>{dateTime || '--/--/---- --:-- --'}</Text>
+            </View>
+            </View>
+
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+            <Pressable
+                style={({ pressed }) => [
+                styles.button,
+                loading && styles.buttonDisabled,
+                pressed && !loading ? { opacity: 0.7 } : null,
+                ]}
+                onPressIn={onPressIn}
+                onPressOut={onPressOut}
+                android_ripple={{ color: '#FF3B30' }}
+            >
+                <Text style={styles.buttonText}>Live Tracking</Text>
+            </Pressable>
+            </Animated.View>
+        </View>
+
+        <BottomNav />
+        </SafeAreaView>
+    );
+    }
 
 const styles = StyleSheet.create({
   container: {
